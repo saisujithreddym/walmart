@@ -4,13 +4,6 @@
     <link rel="stylesheet" href="style.css">
     <script src="js/jquery.js"></script>
     <script src="js/jquery-migrate-1.1.1.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/jquery.ui.totop.js"></script>
-    <script src="js/superfish.js"></script>
-    <script src="js/jquery.equalheights.js"></script>
-    <script src="js/jquery.mobilemenu.js"></script>
-    <script src="js/jquery.easing.1.3.js"></script>
-    
 </head>
 <body>
 
@@ -24,6 +17,9 @@
   Enter the input : <input type="text" id="userinput"><br>  
   <input type="submit" value="Submit" id="submit">
 </div>
+<div class="results">
+   
+</div>
 </div>
 
 <script>
@@ -34,67 +30,103 @@
         this.userinput=userinput;
       }
 
-       var array=[];
-       var result=[];
-        $("#submit").click(function(){
-           var item;
-        	 $.ajax({
-                url: 'http://api.walmartlabs.com/v1/search?query=ipod&format=json&apiKey=zq77hufq24mf4rx29bkqbm8h',
-                type: 'GET',
-                dataType:"jsonp",
-                
-                success:function(response){
-                  //console.log(response);
-                  item=response.items[0].itemId;
-                  alert(item);
+      function compare(a,b){
+        if(parseInt(a.value)>parseInt(b.value))
+          return -1;
+        else if(parseInt(a.value)<parseInt(b.value))
+          return 1;
+        else
+          return 0;
+      }
 
-                  $.ajax({
-                        url: 'main.php',
-                        type: 'GET',
-                        data:{userinput:""+item+""},
-                        dataType:'json',  
-                        success:function(response){
-                          console.log(response);
-                          for(var i=0;i<10;i++){
-                            //alert(response[i].itemId);
-                              array.push(response[i].itemId);
-                          }
-                         
-                          var count=0;
-                          
-                          function ajaxback(){
-                            if(count<10){
-                                $.ajax({
-                                      url: 'reviews.php',
-                                      type: 'GET',
-                                      dataType:'json', 
-                                      data:{productId:""+array[count]+""}, 
-                                      success:function(response){
-                                        count=count+1;
-                                        console.log(response);
-                                        result.push(response);
-                                        //alert(response.reviewStatistics.averageOverallRating);
-                                        ajaxback();
-                                        console.log(result.length);
-                                     }
-                                 });
-                            }
+      var array=[];
+      var result=new Array();
+      var item;
+      var count=0;
+      var keys=[];
+      function init(){
+
+               return $.ajax({
+                    url: 'http://api.walmartlabs.com/v1/search?query='+$("#userinput").val()+'&format=json&apiKey=zq77hufq24mf4rx29bkqbm8h',
+                    type: 'GET',
+                    dataType:"jsonp",
+                    async:false, 
+                    cache: false,
+                    success:function(response){
+                      //console.log(response);
+                      item=response.items[0].itemId;
+
+                      $.ajax({
+                            url: 'main.php',
+                            type: 'GET',
+                            data:{userinput:""+item+""},
+                            dataType:'json',
+                            async:false,  
+                            cache: false,
+                            success:function(response){
+                              //console.log(response);
+                              for(var i=0;i<10;i++){
+                                  array.push(response[i].itemId);
+                              }
+                              
+                              for(var p=0;p<10;p++){
+                                 $.ajax({
+                                          url: 'reviews.php',
+                                          type: 'GET',
+                                          dataType:'json', 
+                                          async:false, 
+                                          cache: false,
+                                          data:{productId:""+array[p]+""}, 
+                                          success:function(response){
+                                            count=count+1;
+                                            console.log(response);
+                                            if(typeof response.reviewStatistics!='undefined'){
+                                              result.push({key:response,value:response.reviewStatistics.averageOverallRating});
+                                                //result[response]=response.reviewStatistics.averageOverallRating;
+                                                //alert(result[response]);
+                                                }
+                                            else{
+                                              result.push({key:response,value:0});
+                                                  //alert(result[response]);
+                                                }                                                                                
+                                         }
+                                     });
+                              }
+                              
+                            
+                          },
+                           error:function(){
+                            alert("not success");
+                           }
+                       }); 
+                        
+                       result.sort(compare);
+                       for(var e in result){
+                        console.log(result[e]);
+                        $(".results").append('<div class="product"><p>Name:'+result[e].key.name+'</p><p>Overall Rating:'+result[e].value+'</p></div>');
+                             
                         }
+                      /*result.sort(function(a,b){
+                        return parseInt(a.reviewStatistics.averageOverallRating)-parseInt(b.reviewStatistics.averageOverallRating);
+                      });*/
+                                    
+                    },
+                    error:function(){
+                      alert("not a success")
+                    }
 
-                        ajaxback();
-                      },
-                       error:function(){
-                        alert("not success");
-                       }
-                   });
-                  
-                }
+               });   
 
-           });
+      }   
+
+       
+        $("#submit").click(function(){
           
-         
+          init();
+          
+       
         });
-
+      
    });
 </script
 
