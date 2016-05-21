@@ -1,0 +1,9 @@
+
+================================    Walmart Recommendations   ==============================
+
+The application tries to find the recommendations based on the user entered product string.
+When the user enters the product in a text box on the home screen,the product Id of the top product retrieved from Search API among many products is taken.
+This product Id is then supplied to Recommendations API to get the recomendations based on the product ID.These recommendations are the tentative products which the user may be interested in buying along with the product originally searched.The top 10 recommendations are then ranked and displayed on the screen.This ranking is based on the ratings and reviews given by the previous users.The products with good reviews and ratings are diaplayed on the top of the page.
+
+=================================    Implementation details:     ===================================
+The server calls made were Ajax Calls which are nested in some cases.The applications logic layer was written entirely on PhP.Also JavaScript,JQuery,HTML,CSS were used to design the web pages and make them dynamic.
